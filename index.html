@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI DevSecOps Auditor</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: white; padding: 40px; }
+        .container { max-width: 800px; margin: auto; background: #1e1e1e; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        input { width: 80%; padding: 12px; border-radius: 5px; border: none; margin-bottom: 20px; font-size: 16px; }
+        button { padding: 12px 25px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:disabled { background: #555; }
+        #output { margin-top: 30px; padding: 20px; background: #2d2d2d; border-left: 5px solid #007bff; border-radius: 5px; min-height: 100px; line-height: 1.6; }
+        h1 { color: #007bff; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 CI/CD Code Auditor</h1>
+        <p>Enter a public GitHub URL to perform an AI-powered security audit.</p>
+        
+        <input type="text" id="repoUrl" placeholder="https://github.com/username/repo" value="">
+        <button id="analyzeBtn" onclick="analyzeRepo()">Run Audit</button>
+
+        <div id="output">Results will appear here...</div>
+    </div>
+
+    <script>
+        async function analyzeRepo() {
+            const repoUrl = document.getElementById('repoUrl').value;
+            const outputDiv = document.getElementById('output');
+            const btn = document.getElementById('analyzeBtn');
+
+            if (!repoUrl) {
+                alert("Please enter a GitHub URL");
+                return;
+            }
+
+            outputDiv.innerHTML = "🔍 Fetching repository and analyzing security context...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ repo_url: repoUrl })
+                });
+
+                const data = await response.json();
+                
+                // SAFETY GUARD: Ensure marked.js doesn't crash if data is empty
+                const reportContent = data.report || "⚠️ Error: The server returned an empty report.";
+                
+                // Using marked.parse() is the modern way to render
+                outputDiv.innerHTML = marked.parse(reportContent);
+
+            } catch (error) {
+                outputDiv.innerHTML = "❌ System Error: Backend is not responding.";
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
